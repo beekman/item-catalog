@@ -1,0 +1,56 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div class='flash'>
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+
+	<ul>
+		{% for message in messages %}
+		<li> <strong> {{ message }} </strong> </li>
+		{% endfor %}
+	</ul>
+	{% endif %}
+	{% endwith %}
+
+</div>
+
+<div class="container padding-top padding-bottom">
+	<div class="row">
+	<div class="col-md-5">
+		<h2>Categories</h2>
+		<div class="col-md-4 category-list">
+			<ul class="menu">
+				{% for category in categories %}
+
+					<li><a href="{{url_for('show_cat_items', category_slug = category.slug)}}">{{category.name}}</a></li>
+
+				{% endfor %}
+			</ul>
+		</div>
+
+		<a href="{{url_for('new_category')}}">New Category</a>
+	</div>
+	<div class="col-md-7">
+		<!-- TODO only show to logged in users -->
+		<a href="{{url_for('new_item')}}">
+			<button class="btn btn-dark btn-outline btn-sm" id="new-item">
+				<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>Add Item
+			</button>
+		</a>
+
+		<h3>Latest Items</h3>
+		{% for item in items %}
+			<div class="item row">
+				<a href='{{url_for('show_item', item_slug=item.slug, category_slug=item.slug) }}'>
+					<h5>{{item.name}}</h5>
+				</a>
+				<a href='{{url_for('edit_item', item_slug=item.slug ) }}'>
+					<button class="btn btn-outline-dark btn-sm" id="edit-item">E</button></a>
+				<a href='{{url_for('delete_item', item_slug=item.slug ) }}'><button class="btn btn-outline-dark btn-sm" id="delete-item">X</button></a>
+			</div>
+		{% endfor %}
+	</div>
+</div>
+</div>
+{% endblock %}
