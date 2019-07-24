@@ -85,8 +85,9 @@ def show_cat_items(category_slug):
            methods=['GET'])
 def show_item(item_slug, category_slug):
     session = DBSession()
-    cat = session.query(Category).filter(Category.slug == category_slug).first()
-    item = session.query(Item).filter(Item.slug == item_slug).first()
+    cat = session.query(Category).filter(Category.slug == category_slug)\
+        .first()
+    item = session.query(Item).filter(Item.slug == item_slug).one()
     return render_template("item.html", item=item, category=cat)
 # @app.route('/catalog/<int:restaurant_id>/')
 # @app.route('/restaurant/<int:restaurant_id>/menu/')
@@ -151,7 +152,7 @@ def delete_category(category_slug):
 
 # Create a new catalog item
 @app.route('/catalog/item/new/', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def new_item():
     session = DBSession()
     if request.method == 'POST':

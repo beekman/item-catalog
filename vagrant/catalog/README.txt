@@ -1,9 +1,13 @@
 To run this final project
 
-1. Navigate to the Full-Stack-Foundations/Lesson-4/Final-Project directory inside the vagrant environment
+Navigate to the item-catalog/vagrant/catalog directory in a terminal.
 
-2. run database_setup.py to create the database
+Type "vagrant up; vagrant ssh" into the terminal and press Return. Wait for the prompt in the Ubuntu VM that's loaded in the terminal.
 
-3. run lotsofmenus.py to populate the database
+Type "cd /vagrant/catalog/" and type return to navigate to the item catalog directory inside the vagrant environment.
 
-4. run application.py and navigate to localhost:5000 in your browser
+run database_setup.py to create the database
+
+run lotsofmenus.py to populate the database
+
+run application.py and navigate to localhost:8000 in your browser
