@@ -122,7 +122,7 @@ def edit_category(category_slug):
     # @login_required
     session = DBSession()
     editedCategory = session.query(
-        Category).filter_by(slug=category_slug).one()
+        Category).filter(Category.slug == category_slug)
     if request.method == 'POST':
         if request.form['name']:
             editedCategory.name = request.form['name']
@@ -171,7 +171,7 @@ def new_item():
 
 # Edit an item
 @app.route('/catalog/<item_slug>/edit', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def edit_item(item_slug):
     session = DBSession()
     editedItem = session.query(Item).filter_by(slug=item_slug).one()

@@ -47,7 +47,7 @@
 				</a>
 				<a href='{{url_for('edit_item', item_slug=item.slug ) }}'>
 					<button class="btn btn-outline-dark btn-sm" id="edit-item">E</button></a>
-				<a href='{{url_for('delete_item', item_slug=item.slug ) }}'><button class="btn btn-outline-dark btn-sm" id="delete-item">X</button></a>
+				<a href='{{url_for('delete_item', item_slug=item.slug ) }}'><button class="btn btn-outline-dark btn-sm" id="delete-item" data-toggle="tooltip" data-placement="top" title="Delete Item">X</button></a>
 			</div>
 		{% endfor %}
 	</div>
