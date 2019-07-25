@@ -1,4 +1,4 @@
-To run this final project
+To run this project
 
 Navigate to the item-catalog/vagrant/catalog directory in a terminal.
 
@@ -8,6 +8,6 @@ Type "cd /vagrant/catalog/" and type return to navigate to the item catalog dire
 
 run database_setup.py to create the database
 
-run lotsofmenus.py to populate the database
+run menus.py to populate the database
 
 run application.py and navigate to localhost:8000 in your browser
