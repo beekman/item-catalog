@@ -1,29 +1,28 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-<div class="container">
+<div class="container pt-3">
 	<h2>New Item</h2>
-<div class="row">
-	<div class="col-md-6 col-md-offset-1 padding-top">
-		<form action="#" method="post">
-			<div class="form-group">
-				<label for="name">Name:</label>
-				<input type="text" maxlength="50" class="form-control" name="name" placeholder="Name of the item">
-
-				<label for="description">Description:</label>
-				<textarea class="form-control" maxlength="250" rows="3" name="description"
-					placeholder="Description of the item"></textarea>
-				<select name="category">
-					<!-- Populate the select list with the list of categories -->
-					{% for category in categories %}
-					<option value="{{ category.id }}">{{ category.name }}</option>
-					{% endfor %}
-				</select>
-				<button type="submit" class="btn btn-primary btn-xs" id="submit" type="submit">
-					Create</button>
-			</div>
-		</form>
+	<div class="row">
+		<div class="col-md-6 col-md-offset-1 padding-top">
+			<form action="#" method="post">
+				<div class="form-group">
+					<label for="name">Name:</label>
+					<input type="text" maxlength="50" class="form-control" name="name" placeholder="Name of the item">
+					<label for="description">Description:</label>
+					<textarea class="form-control" maxlength="250" rows="3" name="description"
+						placeholder="Description of the item"></textarea>
+					<select name="category">
+						<!-- Populate the select list with the list of categories -->
+						{% for category in categories %}
+							<option value="{{ category.id }}">{{ category.name }}</option>
+						{% endfor %}
+					</select>
+					<button type="submit" class="btn btn-primary btn-sm" id="submit" type="submit">
+						Create</button>
+				</div>
+			</form>
+		</div>
 	</div>
-</div>
 </div>
 {% endblock %}

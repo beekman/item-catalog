@@ -1,18 +1,14 @@
-<html>
-
-<head>
-	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css')
-		}}">
-</head>
-
-<body>
-	<h1>Are you sure you want to delete {{ category.name }}?</h1>
-
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div class="container">
+	<div class="alert alert-danger" role="alert">
+	<p class="bold">Are you sure you want to delete {{ category.name }}?</p>
 	<form action="#" method="post">
 		<input type="submit" , value="Delete" />
 	</form>
 
 	<a href="#"> Cancel </a>
-</body>
-
-</html>
+	</div>
+</div>
+{% endblock %}
