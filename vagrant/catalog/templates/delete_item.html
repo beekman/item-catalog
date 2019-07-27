@@ -1,11 +1,13 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
+<div class="container pt-3">
 <div class="alert alert-danger" role="alert">
 	<p class="bold">Are you sure you want to delete {{item.name}}?</p>
 	<form action="#" method = 'post'>
 		<input type='submit', value = 'Delete {{item.name}}'>
 	</form>
 	<a href = '#'>Cancel</a>
+</div>
 </div>
 {% endblock %}

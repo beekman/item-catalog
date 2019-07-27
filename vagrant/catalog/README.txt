@@ -6,8 +6,9 @@ Type "vagrant up; vagrant ssh" into the terminal and press Return. Wait for the 
 
 Type "cd /vagrant/catalog/" and type return to navigate to the item catalog directory inside the vagrant environment.
 
-run database_setup.py to create the database
+run database_setup.py to create the database: python3 database_setup.py
 
-run menus.py to populate the database
+sudo bash cat_config.sh
+ to populate the database
 
 run application.py and navigate to localhost:8000 in your browser

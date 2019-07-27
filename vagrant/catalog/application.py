@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 
 from flask import Flask, render_template, request, redirect, \
-    jsonify, url_for, flash
+    jsonify, url_for, flash, g
 import uuid
 from flask import session as login_session
 from flask_login import login_required, current_user
 from micawber.providers import bootstrap_basic
 from micawber.contrib.mcflask import add_oembed_filters
 from flask_httpauth import HTTPBasicAuth
-auth = HTTPBasicAuth()
-from oauth2client.client import flow_from_clientsecrets, verify_id_token
-from oauth2client.client import FlowExchangeError
+from werkzeug.security import generate_password_hash, check_password_hash
+# from oauth2client.client import flow_from_clientsecrets, verify_id_token
+# from oauth2client.client import FlowExchangeError
 from bs4 import BeautifulSoup
 from slugify import slugify
 import os
 from flask import make_response
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Category, Item
+from database_setup import Base, Category, Item, User
 import httplib2
 import json
 import requests
-from flask_marshmallow import Marshmallow
-import random
+# import random
 import string
 
 engine = create_engine('sqlite:///catalog.db')
@@ -30,42 +29,64 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 app = Flask(__name__)
-
+APP_PATH = os.path.dirname(os.path.abspath(__file__))
+auth = HTTPBasicAuth()
 oembed_providers = bootstrap_basic()
 add_oembed_filters(app, oembed_providers)
 
-APP_PATH = os.path.dirname(os.path.abspath(__file__))
-
-CLIENT_ID = json.loads(open("client_secret.json",
-                            "r").read())['web']['client_id']
+# CLIENT_ID = json.loads(open("client_secret.json",
+#                             "r").read())['web']['client_id']
 
 
-# @auth.verify_password(username_or_token, password):
-#     user_id = User.verify_auth_token(username_or_token)
-#     if user_id:
-#         user = session.query(User).filter_by(id=user_id).one
-#     else:
-#         user = session.query(User).filter_by(username=username_or_token).\
-# first
-#         if not user or not user.verify_password(password):
-#             return False
-#     g.user = user
-#     return True
+@auth.verify_password
+def verify_password(username_or_token, password):
+    # check to see if it's a token first
+    session = DBSession()
+    user_id = User.verify_auth_token(username_or_token)
+    if user_id:
+        user = session.query(User).filter_by(id=user_id).one()
+    else:
+        user = session.query(User).filter_by(username=username_or_token).\
+            first()
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
 
 
-# @app.route('/token')
-# @auth.login_required
-# def get_auth_token:
-#     token: g.user.generate_auth_token()
-#     return jsonify()
+@app.route('/token')
+@auth.login_required
+def get_auth_token():
+    token = g.user.generate_auth_token()
+    return jsonify({'token': token.decode('ascii')})
+
+
+@app.route('/users', methods=['POST'])
+def new_user():
+    username = request.json.get('username')
+    password = request.json.get('password')
+    if username is None or password is None:
+        print("missing arguments")
+        abort(400)
+
+    if session.query(User).filter_by(username=username).first() is not None:
+        return jsonify({'message': 'user already exists'})
+
+    user = User(username=username)
+    user.hash_password(password)
+    session.add(user)
+    session.commit()
+    return jsonify({'username': user.username})
+
 
 # JSON APIs to view Category Tree
 @app.route('/catalog.json')
 def catalog_json():
     session = DBSession()
-    all_categories = session.query(Category).all()
-    categories_schema = CategorySchema(many=True)
-    return categories_schema.jsonify(all_categories)
+    category = session.query(Category).filter_by(slug=category_slug).all()
+    items = session.query(Item).filter_by(category_slug=category_slug).all()
+    return jsonify(Category=[c.serialize for c in items])
+    return jsonify(Items=[i.serialize for i in items])
 
 
 # JSON APIs to view Category Information
@@ -124,22 +145,16 @@ def show_item(item_slug, category_slug):
         .first()
     item = session.query(Item).filter(Item.slug == item_slug).first()
     return render_template("item.html", item=item, category=cat)
-# @app.route('/catalog/<int:restaurant_id>/')
-# @app.route('/restaurant/<int:restaurant_id>/menu/')
-# def showMenu(restaurant_id):
-#     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-#     items = session.query(MenuItem).filter_by(
-#         restaurant_id=restaurant_id).all()
-#     return render_template('menu.html', items=items, restaurant=restaurant)
-
 
 # Create a new category
+
+
 @app.route('/category/new/', methods=['GET', 'POST'])
+@auth.login_required
 def new_category():
     session = DBSession()
-    # @login_required
-    # if 'username' not in login_session:
-    #     return redirect('/signin')
+    if 'username' not in login_session:
+        return redirect('/signin')
     if request.method == 'POST':
         new_category = Category(name=request.form['name'],
                                 slug=slugify(request.form['name']))
@@ -153,7 +168,7 @@ def new_category():
 
 # Create a new catalog item
 @app.route('/catalog/item/new/', methods=['GET', 'POST'])
-# @login_required
+@auth.login_required
 def new_item():
     session = DBSession()
     if request.method == 'POST':
@@ -172,7 +187,7 @@ def new_item():
 
 # Edit an item
 @app.route('/catalog/<item_slug>/edit/', methods=['GET', 'POST'])
-# @login_required
+@auth.login_required
 def edit_item(item_slug):
     session = DBSession()
     editedItem = session.query(Item).filter_by(slug=item_slug).one()
@@ -198,7 +213,7 @@ def edit_item(item_slug):
 # Delete a item
 @app.route('/catalog/<item_slug>/delete',
            methods=['GET', 'POST'])
-# @login_required
+@auth.login_required
 def delete_item(item_slug):
     session = DBSession()
     itemToDelete = session.query(Item).filter_by(slug=item_slug).one()
@@ -214,8 +229,8 @@ def delete_item(item_slug):
 
 
 @app.route('/catalog/edit/<category_slug>/', methods=['GET', 'POST'])
+@auth.login_required
 def edit_category(category_slug):
-    # @login_required
     session = DBSession()
     categories = session.query(Category).order_by(asc(Category.name)).all
     editedCategory = session.query(
@@ -227,13 +242,13 @@ def edit_category(category_slug):
             return redirect(url_for('show_categories'))
     else:
         return render_template('edit_category.html',
-                                categories=categories,
-                                category=editedCategory)
+                               categories=categories,
+                               category=editedCategory)
 
 
 # Delete a category
 @app.route('/catalog/delete/<category_slug>/', methods=['GET', 'POST'])
-# @login_required
+@auth.login_required
 def delete_category(category_slug):
     session = DBSession()
     categoryToDelete = session.query(Category).\

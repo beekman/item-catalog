@@ -21,24 +21,24 @@ session = DBSession()
 
 
 # Create dummy users
-User1 = User(name="Ben Beekman", email="bbeekman@gmail.com",
-             picture="")
-session.add(User1)
+# User1 = User(name="Ben Beekman", email="bbeekman@gmail.com",
+#              picture="", username="beekman")
+# session.add(User1)
+# session.commit()
+
+# User2 = User(name="Gizmo Beekman", email="gizmo@gmail.com",
+#              picture="", username="gizmo")
+# session.add(User2)
+
 session.commit()
 
-User2 = User(name="Gizmo Beekman", email="gizmo@gmail.com",
-             picture="")
-session.add(User2)
 
-session.commit()
-
-
-category1 = Category(user_id=1, name="DJ Gear", slug="dj-gear")
+category1 = Category(user_id=3, name="DJ Gear", slug="dj-gear")
 
 session.add(category1)
 session.commit()
 
-category2 = Category(user_id=2, name="Music", slug="music")
+category2 = Category(user_id=3, name="Music", slug="music")
 
 session.add(category2)
 session.commit()
@@ -47,8 +47,15 @@ item1 = Item(user_id=1, name="Serato Scratch Live", slug="serato-scratch-live",
              description="Vinyl emulation software", category=category1)
 session.add(item1)
 session.commit()
+item = Item(user_id=1, name="DJ Mixer", slug="dj-mixer",
+            description="A DJ mixer is a type of audio mixing console used by DJs for two \
+            different purposes: to make seamless transitions from one song to\
+            another, and to play record players like a musical instrument.",
+            category=category2)
+session.add(item)
+session.commit()
 
-item2 = Item(user_id=2, name="CDJs", slug="cdjs",
+item2 = Item(user_id=3, name="CDJs", slug="cdjs",
              description="These DJ-quality systems allow you\
              to fluidly mix CDs and MP3s with \
              turntablist-grade precision.",
@@ -56,7 +63,7 @@ item2 = Item(user_id=2, name="CDJs", slug="cdjs",
 
 session.add(item2)
 session.commit()
-item3 = Item(user_id=2, name="Carbon Based Life Forms",
+item3 = Item(user_id=3, name="Carbon Based Life Forms",
              slug="carbon-based-life-forms",
              description="https://youtu.be/YzqiUi5-v5I",
              category=category2)

@@ -5,35 +5,54 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
-from marshmallow import Schema, fields
-from flask_marshmallow import Marshmallow
 from flask import Flask
+from passlib.apps import custom_app_context as pwd_context
+import random
+import string
+from itsdangerous import(TimedJSONWebSignatureSerializer
+                         as Serializer,
+                         BadSignature,
+                         SignatureExpired)
 
 app = Flask(__name__)
-ma = Marshmallow(app)
 Base = declarative_base()
+
+secret_key = ''.join(random.choice(
+    string.ascii_uppercase + string.digits) for x in range(32))
 
 
 class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    username = Column(String(40), index=True)
+    name = Column(String(250))
     password_hash = Column(String(64))
-    email = Column(String(250), nullable=False)
+    email = Column(String(250))
     picture = Column(String(250))
 
+    def hash_password(self, password):
+        self.password_hash = pwd_context.encrypt(password)
 
-def hash_password(self, password):
-    self.password_hash = pwd_context.encrypt(password)
+    def verify_password(self, password):
+        return pwd_context.verify(password, self.password_hash)
 
+    def generate_auth_token(self, expiration=600):
+        s = Serializer(secret_key, expires_in=expiration)
+        return s.dumps({'id': self.id})
 
-def verify_password(self, password):
-    return pwd_context.verify(password, self.password_hash)
-
-
-def generate_auth_token(self, expiration=600):
-    s = Serializer(secret_key, expires_in=expiration)
-    return s.dumps({'id': self.id})
+    def verify_auth_token(token):
+        s = Serializer(secret_key)
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            # Valid but Expired token
+            return None
+        except BadSignature:
+            # Token is Invalid
+            return None
+        user_id = data['id']
+        return user_id
+# @staticmethod
 
 
 class Category(Base):
@@ -81,18 +100,6 @@ class Item(Base):
         return "<Item(id='%s', name='%s', slug='%s')>" % (
             self.id, self.name, self.slug)
 
-
-class ItemSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'name', 'description')
-
-
-class CategorySchema(ma.Schema):
-    fields = ('id', 'name')
-
-
-# categorytree = fields.Nested(ItemSchema)
-categories_schema = CategorySchema(many=True)
 
 engine = create_engine('sqlite:///catalog.db')
 

@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
 
-<head>
-  <link href='//fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
-  <!--google -->
-  <script src="//apis.google.com/js/platform.js?onload=init" async defer></script>`
-
-  <meta name="google-signin-client_id"
-    content="759306340031-p8a40fq9t90jfrhiqpe72t8r2v01s8rl.apps.googleusercontent.com">
-
-</head>
-
-<body>
-  <div class="container">
+<div class="container pt-3">
 
 
     <!-- start Google Start Login -->
@@ -51,6 +37,4 @@
 
 
   </div>
-</body>
-
-</html>
+{% endblock %}
