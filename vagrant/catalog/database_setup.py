@@ -40,6 +40,7 @@ class User(Base):
         s = Serializer(secret_key, expires_in=expiration)
         return s.dumps({'id': self.id})
 
+    @staticmethod
     def verify_auth_token(token):
         s = Serializer(secret_key)
         try:
@@ -52,12 +53,10 @@ class User(Base):
             return None
         user_id = data['id']
         return user_id
-# @staticmethod
 
 
 class Category(Base):
     __tablename__ = 'category'
-
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
     slug = Column(String(250), nullable=False)
