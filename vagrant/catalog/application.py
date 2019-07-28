@@ -79,13 +79,13 @@ def new_user():
     return jsonify({'username': user.username})
 
 
-# JSON APIs to view Category Tree
+# JSON APIs to view categories
 @app.route('/catalog.json')
 def catalog_json():
     session = DBSession()
-    category = session.query(Category).filter_by(slug=category_slug).all()
+    categories = session.query(Category).filter_by(slug=category_slug).all()
     items = session.query(Item).filter_by(category_slug=category_slug).all()
-    return jsonify(Category=[c.serialize for c in items])
+    return jsonify(Category=[c.serialize for c in categories])
     return jsonify(Items=[i.serialize for i in items])
 
 
