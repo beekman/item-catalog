@@ -9,8 +9,8 @@ from micawber.providers import bootstrap_basic
 from micawber.contrib.mcflask import add_oembed_filters
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-# from oauth2client.client import flow_from_clientsecrets, verify_id_token
-# from oauth2client.client import FlowExchangeError
+from oauth2client.client import flow_from_clientsecrets, verify_id_token
+from oauth2client.client import FlowExchangeError
 from bs4 import BeautifulSoup
 from slugify import slugify
 import os
@@ -341,7 +341,7 @@ def gconnect():
 
     # Store the access token in the session for later use.
     login_session['access_token'] = access_token
-    # login_session['gplus_id'] = gplus_id
+    login_session['gplus_id'] = gplus_id
 
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"

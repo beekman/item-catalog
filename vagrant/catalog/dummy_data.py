@@ -21,14 +21,21 @@ session = DBSession()
 
 
 # Create dummy users
-# User1 = User(name="Ben Beekman", email="bbeekman@gmail.com",
-#              picture="", username="beekman")
-# session.add(User1)
-# session.commit()
+User1 = User(name="Ben Beekman", email="bbeekman@gmail.com",
+             picture="", username="beekman")
+session.add(User1)
+session.commit()
 
-# User2 = User(name="Gizmo Beekman", email="gizmo@gmail.com",
-#              picture="", username="gizmo")
-# session.add(User2)
+User2 = User(name="Gizmo Beekman", email="gizmo@gmail.com",
+             picture="", username="gizmo")
+session.add(User2)
+User3 = User(name="Liz", email="gizmo@gmail.com",
+             picture="", username="liz")
+session.add(User3)
+User4 = User(name="Johanna", email="johannabeekman@gmail.com",
+             picture="", username="johanna")
+session.add(User3)
+
 
 session.commit()
 
