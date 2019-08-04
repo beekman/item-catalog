@@ -6,6 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from flask import Flask
+# from flask_login import UserMixin
 from passlib.apps import custom_app_context as pwd_context
 import random
 import string
@@ -22,6 +23,9 @@ secret_key = ''.join(random.choice(
 
 
 class User(Base):
+    """
+    Registered user information is stored in db
+    """
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     username = Column(String(40), index=True)
@@ -54,8 +58,27 @@ class User(Base):
         user_id = data['id']
         return user_id
 
+    # def is_active(self):
+    #     """True, as all users are active."""
+    #     return True
+
+    # def get_id(self):
+    #     """Return the email address to satisfy Flask-Login's requirements."""
+    #     return self.id
+
+    # def is_authenticated(self):
+    #     """Return True if the user is authenticated."""
+    #     return self.authenticated
+
+    # def is_anonymous(self):
+    #     """False, as anonymous users aren't allowed."""
+    #     return False
+
 
 class Category(Base):
+    """
+    Registered user information is stored in db
+    """
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
@@ -65,10 +88,13 @@ class Category(Base):
 
     @property
     def serialize(self):
-        """Return object data in easily serializable format"""
+        """
+        Return object data in easily serializable format
+        """
         return {
             'name': self.name,
-            'id': self.id
+            'id': self.id,
+            'user_id': self.user_id
         }
 
     def __repr__(self):
@@ -76,6 +102,10 @@ class Category(Base):
 
 
 class Item(Base):
+    """
+    Items are stored in db, along with relationship info
+    for category and user.
+    """
     __tablename__ = 'item'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
@@ -93,6 +123,8 @@ class Item(Base):
             'id': self.id,
             'name': self.name,
             'description': self.description,
+            'category_id': self.category_id,
+            'user_id': self.user_id
         }
 
     def __repr__(self):

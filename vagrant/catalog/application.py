@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template, request, redirect, \
-    jsonify, url_for, flash, g
+from flask import (Flask,
+                   render_template,
+                   request,
+                   redirect,
+                   jsonify,
+                   url_for,
+                   flash,
+                   g)
 import uuid
 from flask import session as login_session
-from flask_login import login_required, current_user
+"""from flask_login import (login_required,
+                        #  current_user,
+                        #  login_user,
+                        #  LoginManager)
+                        """
 from micawber.providers import bootstrap_basic
 from micawber.contrib.mcflask import add_oembed_filters
 from flask_httpauth import HTTPBasicAuth
@@ -34,9 +44,6 @@ auth = HTTPBasicAuth()
 oembed_providers = bootstrap_basic()
 add_oembed_filters(app, oembed_providers)
 
-# CLIENT_ID = json.loads(open("client_secret.json",
-#                             "r").read())['web']['client_id']
-
 
 @auth.verify_password
 def verify_password(username_or_token, password):
@@ -57,6 +64,7 @@ def verify_password(username_or_token, password):
 @app.route('/token')
 @auth.login_required
 def get_auth_token():
+    session = DBSession()
     token = g.user.generate_auth_token()
     return jsonify({'token': token.decode('ascii')})
 
@@ -83,10 +91,10 @@ def new_user():
 @app.route('/catalog.json')
 def catalog_json():
     session = DBSession()
-    categories = session.query(Category).filter_by(slug=category_slug).all()
-    items = session.query(Item).filter_by(category_slug=category_slug).all()
-    return jsonify(Category=[c.serialize for c in categories])
-    return jsonify(Items=[i.serialize for i in items])
+    categories = session.query(Category).all()
+    items = session.query(Item).all()
+    return jsonify(Category=[c.serialize for c in categories],
+                   Items=[i.serialize for i in items])
 
 
 # JSON APIs to view Category Information
@@ -96,11 +104,6 @@ def category_catalog_json(category_slug):
     category = session.query(Category).filter_by(slug=category_slug).one()
     items = session.query(Item).filter_by(category_slug=category_slug).all()
     return jsonify(Items=[i.serialize for i in items])
-
-
-@app.route('/category/item/<item_slug>/JSON')
-def item_json(category_id, item_id):
-    session = DBSession()
 
 
 @app.route('/category/JSON')
@@ -153,11 +156,16 @@ def show_item(item_slug, category_slug):
 @auth.login_required
 def new_category():
     session = DBSession()
-    if 'username' not in login_session:
-        return redirect('/signin')
+    username = (auth.username())
+    user = session.query(User).filter(User.username == username)\
+        .first()
+    user_id = user.id
+    # if 'username' not in login_session:
+    #     return redirect('/signin')
     if request.method == 'POST':
         new_category = Category(name=request.form['name'],
-                                slug=slugify(request.form['name']))
+                                slug=slugify(request.form['name']),
+                                user_id=user_id)
         session.add(new_category)
         flash('New Category %s Successfully Created' % new_category.name)
         session.commit()
@@ -171,18 +179,24 @@ def new_category():
 @auth.login_required
 def new_item():
     session = DBSession()
+    username = (auth.username())
+    user = session.query(User).filter(User.username == username)\
+        .first()
+    user_id = user.id
     if request.method == 'POST':
         new_item = Item(name=request.form['name'],
                         slug=slugify(request.form['name']),
                         description=request.form['description'],
-                        category_id=request.form['category'])
+                        category_id=request.form['category'],
+                        user_id=user_id)
         session.add(new_item)
         session.commit()
-        flash('New Catalog %s Item Successfully Created' % (new_item.name))
+        flash('New %s Item Created' % (new_item.name))
         return redirect(url_for('show_categories'))
     else:
         categories = session.query(Category).all()
-        return render_template('new_item.html', categories=categories)
+        return render_template('new_item.html',
+                               categories=categories)
 
 
 # Edit an item
@@ -191,23 +205,32 @@ def new_item():
 def edit_item(item_slug):
     session = DBSession()
     editedItem = session.query(Item).filter_by(slug=item_slug).one()
-    if request.method == 'POST':
-        if request.form['name']:
-            editedItem.name = request.form['name']
-            editedItem.slug = slugify(request.form['name'])
-        if request.form['description']:
-            editedItem.description = request.form['description']
-        if request.form['category']:
-            editedItem.category_id = request.form['category']
-        session.add(editedItem)
-        session.commit()
-        flash('Item Successfully Edited')
-        return redirect(url_for('show_categories'))
+    username = auth.username()
+    user = session.query(User).filter(User.username == username)\
+        .first()
+    user_id = user.id
+    if editedItem.user_id == user_id:
+        if request.method == 'POST':
+            if request.form['name']:
+                editedItem.name = request.form['name']
+                editedItem.slug = slugify(request.form['name'])
+            if request.form['description']:
+                editedItem.description = request.form['description']
+            if request.form['category']:
+                editedItem.category_id = request.form['category']
+            session.add(editedItem)
+            session.commit()
+            flash('Item Successfully Edited')
+            return redirect(url_for('show_categories'))
+        else:
+            if editedItem.user_id == user_id:
+                categories = session.query(Category).all()
+                return render_template('edit_item.html',
+                                       item=editedItem,
+                                       categories=categories)
     else:
-        categories = session.query(Category).all()
-        return render_template('edit_item.html',
-                               item=editedItem,
-                               categories=categories)
+            flash('Only the item owner can make edits')
+            return redirect(url_for('show_categories'))
 
 
 # Delete a item
@@ -216,57 +239,83 @@ def edit_item(item_slug):
 @auth.login_required
 def delete_item(item_slug):
     session = DBSession()
+    username = (auth.username())
+    user = session.query(User).filter(User.username == username)\
+        .first()
     itemToDelete = session.query(Item).filter_by(slug=item_slug).one()
-    if request.method == 'POST':
-        session.delete(itemToDelete)
-        session.commit()
-        flash('Catalog Item Successfully Deleted')
-        return redirect(url_for('show_categories'))
+    if itemToDelete.user_id == user.id:
+        if request.method == 'POST':
+            session.delete(itemToDelete)
+            session.commit()
+            flash('Item Successfully Deleted')
+            return redirect(url_for('show_categories'))
+        else:
+            return render_template('delete_item.html',
+                                   item=itemToDelete,
+                                   user_id=user_id)
     else:
-        return render_template('delete_item.html', item=itemToDelete)
+        flash('Only the item owner can delete it')
+        return redirect(url_for('show_categories'))
 
-# Edit a category
 
-
+# Edit a category that you created
 @app.route('/catalog/edit/<category_slug>/', methods=['GET', 'POST'])
 @auth.login_required
 def edit_category(category_slug):
     session = DBSession()
     categories = session.query(Category).order_by(asc(Category.name)).all
     editedCategory = session.query(
-        Category).filter(Category.slug == category_slug)
-    if request.method == 'POST':
-        if request.form['name']:
-            editedCategory.name = request.form['name']
-            flash('Category Successfully Edited %s' % editedCategory.name)
-            return redirect(url_for('show_categories'))
+        Category).filter(Category.slug == category_slug).first()
+    username = auth.username()
+    user = session.query(User).filter(User.username == username)\
+        .first()
+    user_id = user.id
+    if editedCategory.user_id == user_id:
+        if request.method == 'POST':
+                if request.form['name']:
+                    editedCategory.name = request.form['name']
+                    flash('Category Successfully Edited %s'
+                          % editedCategory.name)
+                    return redirect(url_for('show_categories'))
+        else:
+            return render_template('edit_category.html',
+                                   categories=categories,
+                                   category=editedCategory
+                                   )
     else:
-        return render_template('edit_category.html',
-                               categories=categories,
-                               category=editedCategory)
+            flash('Only the category owner can edit it.')
+            return redirect(url_for('show_categories'))
 
 
-# Delete a category
+# Delete a category that you created
 @app.route('/catalog/delete/<category_slug>/', methods=['GET', 'POST'])
 @auth.login_required
 def delete_category(category_slug):
     session = DBSession()
     categoryToDelete = session.query(Category).\
         filter_by(slug=category_slug).one()
-    if request.method == 'POST':
-        session.delete(categoryToDelete)
-        flash('%s Successfully Deleted' % categoryToDelete.name)
-        session.commit()
-        return redirect(url_for('show_items', category_slug=category_slug))
+    username = auth.username()
+    user = session.query(User).filter(User.username == username)\
+        .first()
+    user_id = user.id
+    if categoryToDelete.user_id == user_id:
+        if request.method == 'POST':
+            session.delete(categoryToDelete)
+            flash('%s Successfully Deleted' % categoryToDelete.name)
+            session.commit()
+            return redirect(url_for('show_items', category_slug=category_slug))
+        else:
+            return render_template('delete_category.html',
+                                   category=categoryToDelete)
     else:
-        return render_template('delete_category.html',
-                               category=categoryToDelete)
+        flash('Only the category owner can delete it.')
+        return redirect(url_for('show_categories'))
 
 
 @app.route('/signin')
 def signin():
     state = uuid.uuid4()
-    login_session['state'] = str('state')
+    login_session["state"] = str("state")
     return render_template('signin.html', state=state)
 
 
@@ -340,7 +389,7 @@ def gconnect():
         return response
 
     # Store the access token in the session for later use.
-    login_session['access_token'] = access_token
+    session['access_token'] = access_token
     login_session['gplus_id'] = gplus_id
 
     # Get user info
@@ -350,8 +399,8 @@ def gconnect():
 
     data = answer.json()
 
-    login_session['username'] = data['name']
-    login_session['picture'] = data['picture']
+    login_session['username'] = data.get('name', '')
+    login_session['picture'] = data.get('picture', '')
     login_session['email'] = data['email']
 
     output = ''

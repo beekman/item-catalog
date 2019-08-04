@@ -15,8 +15,7 @@ h2 {
 	font-family: "Georgia", serif;
 	margin: 0;
 }
-h1 {;
-}
+h1 {}
 h2 {
 	font-size: 1.5em;
 }
@@ -42,7 +41,7 @@ a {
 	background-color: #333333;
 }
 .banner {
-	background-color:#04203F;
+	background-color: #04203F;
 }
 .banner h1 {
 	color: white;
@@ -57,8 +56,8 @@ a {
 }
 .menu {
 	list-style-type: none;
-  	margin: 0;
-  	padding: 0;
+	margin: 0;
+	padding: 0;
 }
 .menu li {
 	padding-inline-start: 0px;
@@ -87,9 +86,6 @@ a {
 }
 
 .bg-image {
-	background-image: url('https://source.unsplash.com/WEQbe2jBg40/600x1200');
-	background-size: cover;
-	background-position: center;
 }
 
 .login-heading {
@@ -104,7 +100,7 @@ a {
 	padding: 0.75rem 1rem;
 	border-radius: 0;
 	background-color: #E04E1D;
-	color:white;
+	color: white;
 }
 
 .form-label-group {

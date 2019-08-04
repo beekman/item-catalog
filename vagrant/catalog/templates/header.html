@@ -7,7 +7,11 @@
 			</a>
 		</div>
 		<div class="col-sm-4 text-right login-btn">
-			<a href="{{url_for('signin')}}"><button class="btn btn-login" id="login">Login</button></a>
+			{% if 'username' not in login_session %}
+				<a href="{{url_for('signin')}}"><button class="btn btn-login" id="login">Login</button></a>
+			{% else %}
+				<a href="{{url_for('signout')}}"><button class="btn btn-login" id="logout">Logout</button></a>
+			{% endif %}
 		</div>
 	</div>
 </div>
