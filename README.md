@@ -1,5 +1,9 @@
 # Item Catalog- A RESTful multi-user webapp
 
+Software installed includes the following: Python 3, Flask, PostgreSQL, Psycopg2, SQLAlchemy, Flask-Login, Flask HTTPAuth, Passlib, HTTPLib2, Oauth2.
+
+I also used the following third-party resources: python-slugify to generate web-safe slugs for the categories and items, and Beautiful Soup 4 to enable oEmbed for the description field of items, enabling Youtube video embedding in the item details.
+
 ## Installation
 
 ### Install VirtualBox
